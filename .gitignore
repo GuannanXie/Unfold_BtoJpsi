@@ -1,0 +1,16 @@
+*.swp
+*.consign
+*.d
+.sl64_gcc4*
+*.root
+*.pdf
+*.png
+*.gif
+*.jpg
+.sl64_gcc447
+temp_gccflags.c
+*.o
+*.so
+*.zip
+*.package
+*.session.xml
