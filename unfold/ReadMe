@@ -1,0 +1,6 @@
+1. analysis.C (bt.h) to loop the file
+2. replace unfold/rootfiles/combined.hist.root with the file from step 1
+3. run unfold/unfold_decay.C to get the output
+4. run unfold/out/B_spectra_compare.C to compare the our B with phenix B
+    and obtain the unfold-decayed Jpsi and compare it with Fonll
+    
