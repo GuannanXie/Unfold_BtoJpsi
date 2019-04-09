@@ -244,7 +244,7 @@ void unfold_decay()
     inversedBtoAll=Decay(EQdecaymatrixe,inversedBtoAll_smear_e,inversedBtoAll_smear_ecov,inversedBtoAll);
     
     //smear to the other daughters
-    TH1D* inversed_BtoAll_smear_D0 = inversedBtoAll_smear_e->Clone("inversedBtoAll_smear_D0");
+    TH1D* inversedBtoAll_smear_D0 = inversedBtoAll_smear_e->Clone("inversedBtoAll_smear_D0");
     inversedBtoAll_smear_D0->Reset("ICES");
     inversedBtoAll_smear_D0 = Decay(EQdecaymatrixD0,inversedBtoAll_smear_e,inversedBtoAll_smear_ecov,inversedBtoAll_smear_D0);
     
