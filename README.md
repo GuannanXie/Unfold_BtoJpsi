@@ -8,7 +8,7 @@ This code was original inherit form RooUnfold and modified by UIC group.
 All Rights Reserved !
 
 ###Code Authors:  
-[Guannan Xie](https://github.com/GuannanXie) (xieguannanpp@gmail.gov)  
+[Guannan Xie](https://github.com/GuannanXie) (xieguannanpp@gmail.com)  
 [Ziyue Zhang]() (zzhan70@uic.edu)  
 - - -
 ### Presentations:  
