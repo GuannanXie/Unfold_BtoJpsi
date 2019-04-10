@@ -144,12 +144,9 @@ TH1D*Bscale(TH1D*Bhist, TH1D*scalef)//from real to smeared
 
 void unfold_decay()
 {
-    // TFile* fin = new TFile("out/DataInput.root");
-    // TH1D* dataBtoe=(TH1D*)fin->Get("gCountsBtoe_highpt");
     TFile* fin = new TFile("out/DataInput_phenix.root");//update to phenix input
     TH1D* dataBtoe=(TH1D*)fin->Get("gCountsBtoe_phenix"); //Side product: Btoe pt:
     TH1D* gPhenixB=(TH1D*)fin->Get("gYieldB_phenix"); //Side product: B pt:
-
 
     TFile *fsim = new TFile("rootfiles/BtoAll.phenix.hist.root");//new covMatrix root file with Jpsi decay opened
     TH1D* pthist_Btoall = (TH1D*)fsim->Get("pthist_Btoall");
@@ -641,7 +638,7 @@ void unfold_decay()
     // c6->SaveAs("unfoldedBtoAll.eps");
     c6->SaveAs("unfoldedBtoAll.png");
 
-    TFile* out= new TFile("etoBtoD0andJpsi.root","recreate");
+    TFile* out= new TFile("etoBtoD0andJpsi.phenix.root","recreate");
     out->cd();
     c1->Write();
     c2->Write();
