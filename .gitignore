@@ -14,3 +14,4 @@ temp_gccflags.c
 *.zip
 *.package
 *.session.xml
+./plots/*
