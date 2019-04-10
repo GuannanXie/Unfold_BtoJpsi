@@ -30,6 +30,24 @@ void calcInvYield(TH1 *h){
     }
 }
 
+double calcRelativeDiff(TH1 *h1, TH1 *h2){//h1 base line
+  double relativeDiff = 0;
+    for(int i=0;i<h1->GetNbinsX();++i){
+        double x1 = h1->GetBinCenter(i+1);
+        double y1 = h1->GetBinContent(i+1);
+        double ey1 = h1->GetBinError(i+1);
+        double x2 = h2->GetBinCenter(i+1);
+        double y2 = h2->GetBinContent(i+1);
+        double ey2 = h2->GetBinError(i+1);
+        if(fabs(x1-x2)>1e-2) return -1;
+        double tmp = (fabs(y2-y1)/y1);
+        relativeDiff += tmp;
+        // cout << i<< " th point "<< tmp << endl;
+    }
+    relativeDiff /= h1->GetNbinsX();
+    return relativeDiff;
+}
+
 TH1D* calculatescale(TH1D* histreal_mom, TH2D* response_sontomom)
 {
     for(int i=0;i<histreal_mom->GetNbinsX();i++)
@@ -231,7 +249,10 @@ void unfold_decay()
     decayed_D0fromB->Reset("ICES");
     decayed_JpsifromB->Reset("ICES");
     
-    int nIter = 25;//100;//6;
+    int nIter = 1;//100;//6;
+    double diff = 1;
+    while(diff>0.03)
+    {
     //unfold==================================================================================================
     //unfold->inverse for consistency check
     RooUnfoldBayes inverse_BtoAll(response_B_e_rebin,hist_efromB_selected_rebin,nIter);
@@ -301,6 +322,10 @@ void unfold_decay()
     RooUnfoldBayes decay_fold_JpsifromB(response_Jpsi_B,unfoldedBtoAll_smear_Jpsi,1);
     TH1D* decayed_folded_JpsifromB = (TH1D*)((TH1D*)(decay_fold_JpsifromB.Hreco(2)))->Clone("decayed_folded_JpsifromB");
 
+    diff = calcRelativeDiff(dataBtoe, decayed_efromB_selected_rebin);
+    nIter++;
+    }
+    cout << "nIter = " << nIter << " ; diff = " << diff << endl;
     //===========
     //cv5
     calcInvYield(decayed_D0fromB);
