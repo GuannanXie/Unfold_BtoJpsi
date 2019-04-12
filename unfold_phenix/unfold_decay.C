@@ -148,7 +148,8 @@ void unfold_decay()
     TH1D* dataBtoe=(TH1D*)fin->Get("gCountsBtoe_phenix"); //Side product: Btoe pt:
     TH1D* gPhenixB=(TH1D*)fin->Get("gYieldB_phenix"); //Side product: B pt:
 
-    TFile *fsim = new TFile("rootfiles/BtoAll.phenix.hist.root");//new covMatrix root file with Jpsi decay opened
+    // TFile *fsim = new TFile("rootfiles/BtoAll.phenix.hist.root");//new covMatrix root file with Jpsi decay opened
+    TFile *fsim = new TFile("rootfiles/BtoAll.phenix.pt2.hist.root");//new covMatrix root file with Jpsi decay opened
     TH1D* pthist_Btoall = (TH1D*)fsim->Get("pthist_Btoall");
     TH1D* hist_efromB_selected_rebin = (TH1D*)fsim->Get("hist_efromB_selected_rebin");
     TH1D* hist_D0fromB = (TH1D*)fsim->Get("hist_D0fromB");
@@ -246,7 +247,7 @@ void unfold_decay()
     decayed_D0fromB->Reset("ICES");
     decayed_JpsifromB->Reset("ICES");
     
-    int nIter = 1;//100;//6;
+    int nIter = 1;//20
     double diff = 1;
     while(diff>0.03)
     {
@@ -638,7 +639,7 @@ void unfold_decay()
     // c6->SaveAs("unfoldedBtoAll.eps");
     c6->SaveAs("unfoldedBtoAll.png");
 
-    TFile* out= new TFile("etoBtoD0andJpsi.phenix.root","recreate");
+    TFile* out= new TFile("etoBtoD0andJpsi.phenix.pt2.root","recreate");
     out->cd();
     c1->Write();
     c2->Write();
@@ -650,6 +651,8 @@ void unfold_decay()
     decayed_folded_D0fromB->Write();
     decayed_JpsifromB->Write();
     decayed_folded_JpsifromB->Write();
+    decayed_efromB_selected_rebin->Write();
+    decayed_folded_efromB->Write();
     unfoldedBtoAll->Write();
     out->Close();
 }

@@ -144,15 +144,15 @@ TH1D*Bscale(TH1D*Bhist, TH1D*scalef)//from real to smeared
 
 void unfold_decay()
 {
-    TFile* fin0 = new TFile("out/DataInput.root");//star input with high pt b->e
-    TH1D* dataBtoe=(TH1D*)fin0->Get("gCountsBtoe_highpt");
+    TFile* fin0 = new TFile("out/DataInput_star.root");//star input with high pt b->e
+    TH1D* dataBtoe=(TH1D*)fin0->Get("hCountsBtoe_star");
     TFile* fin = new TFile("out/DataInput_phenix.root");//update to phenix input
     // TH1D* dataBtoe=(TH1D*)fin->Get("gCountsBtoe_phenix"); //Side product: Btoe pt:
     TH1D* gPhenixB=(TH1D*)fin->Get("gYieldB_phenix"); //Side product: B pt:
 
 
-    // TFile *fsim = new TFile("rootfiles/BtoAll.phenix.hist.root");//new covMatrix root file with Jpsi decay opened
-    TFile *fsim = new TFile("rootfiles/BtoAll.star.hist.root");//new covMatrix root file with Jpsi decay opened
+    // TFile *fsim = new TFile("rootfiles/BtoAll.star.hist.root");//new covMatrix root file with Jpsi decay opened
+    TFile *fsim = new TFile("rootfiles/BtoAll.star.pt2.hist.root");//new covMatrix root file with Jpsi decay opened
     TH1D* pthist_Btoall = (TH1D*)fsim->Get("pthist_Btoall");
     TH1D* hist_efromB_selected_rebin = (TH1D*)fsim->Get("hist_efromB_selected_rebin");
     TH1D* hist_D0fromB = (TH1D*)fsim->Get("hist_D0fromB");
@@ -250,9 +250,9 @@ void unfold_decay()
     decayed_D0fromB->Reset("ICES");
     decayed_JpsifromB->Reset("ICES");
     
-    int nIter = 10;//100;//6;//40;
+    int nIter = 20;//40;
     double diff = 1;
-    while(diff>0.1)//large errors with stat data point, need more iterations to converge to ~10%
+    // while(diff>0.1)//large errors with stat data point, need more iterations to converge to ~10%
     {
     //unfold==================================================================================================
     //unfold->inverse for consistency check
@@ -325,7 +325,6 @@ void unfold_decay()
 
     diff = calcRelativeDiff(dataBtoe, decayed_efromB_selected_rebin);
     nIter++;
-    cout << "nIter = " << nIter << " ; diff = " << diff << endl;
     }
     cout << "nIter = " << nIter << " ; diff = " << diff << endl;
     //===========
@@ -643,7 +642,8 @@ void unfold_decay()
     // c6->SaveAs("unfoldedBtoAll.eps");
     c6->SaveAs("unfoldedBtoAll.png");
 
-    TFile* out= new TFile("etoBtoD0andJpsi.root","recreate");
+    // TFile* out= new TFile("etoBtoD0andJpsi.star.root","recreate");
+    TFile* out= new TFile("etoBtoD0andJpsi.star.pt2.root","recreate");
     out->cd();
     c1->Write();
     c2->Write();
@@ -655,6 +655,8 @@ void unfold_decay()
     decayed_folded_D0fromB->Write();
     decayed_JpsifromB->Write();
     decayed_folded_JpsifromB->Write();
+    decayed_efromB_selected_rebin->Write();
+    decayed_folded_efromB->Write();
     unfoldedBtoAll->Write();
     out->Close();
 }
