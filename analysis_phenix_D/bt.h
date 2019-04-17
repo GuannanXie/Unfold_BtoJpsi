@@ -19,35 +19,24 @@
 #include <TString.h>
 #include <TRandom.h>
 #if !(defined(__CINT__) || defined(__CLING__)) || defined(__ACLIC__)
-//#include "src/RooUnfoldResponse.h"
-//#include "src/RooUnfoldBayes.h"
-//#include "src/RooUnfoldSvd.h"
-//#include "src/RooUnfoldTUnfold.h"
 #endif
 
 using namespace std;
 
-TH1D* pthist_Btoall;
+TH1D* pthist_Dtoall;
+TH1D* pthist_D0toall;
 
-TH1D* Bscale_e;
-TH1D* Bscale_D0;
-TH1D* Bscale_Jpsi;
-//Btoepecific daughter hist, used for scale
+TH1D* Dscale_e;
+TH1D* D0scale_e;
 
-TH1D* hist_efromB_selected_rebin;
-TH1D* hist_D0fromB;
-TH1D* hist_JpsifromB;
+TH1D* hist_efromD_selected_rebin;
 
-TH2D* Mresponse_B_e_rebin;
-TH2D* Mresponse_e_rebin_B;
-TH2D* Mresponse_D0_B;
-TH2D* Mresponse_Jpsi_B;
+TH2D* Mresponse_D_e_rebin;
+TH2D* Mresponse_D0_e_rebin;
+TH2D* Mresponse_e_rebin_D;
+TH2D* Mresponse_e_rebin_D0;
 
-
-TH2D* decay_Btoe_selected_rebin;
-TH2D* decay_BtoD0;
-TH2D* decay_BtoJpsi;
-
+TH2D* decay_Dtoe_selected_rebin;
 // Header file for the classes stored in the TTree if any.
 // Fixed size dimensions of array or collections stored in the TTree if any.
 
@@ -113,7 +102,7 @@ bt::bt(TString input, TTree *tree) : fChain(0)
 {
    // if parameter tree is not specified (or zero), connect the file
    // used to generate this class and read the Tree.
-   fOutputFileName = "BtoAll.hist.root";
+   fOutputFileName = "DtoAll.hist.root";
    //fOutputFileName.ReplaceAll(".root",".hist.root");
    if (tree == 0) {
       TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject(input);
@@ -209,97 +198,75 @@ Int_t bt::Cut(Long64_t entry)
    // This function may be called from Loop.
    // returns  1 if entry is accepted.
    // returns -1 otherwise.
-   int Binfo[3][2000]={0};
+   int Dinfo[2][2000]={0};
    for(int i=0;i<np;++i)
    {
       if(bMotherId[i]<0) continue;
       double ptTmp=sqrt(px[i]*px[i]+py[i]*py[i]);
       int pId = bMotherId[i];
+      if(fabs(pdgid[pId])==443) continue;
       if(fabs(pdgid[i])==11&&status[i]>0&&fabs(eta[i])<0.35&&ptTmp>1.&&ptTmp<9.)
-         Binfo[0][pId]=Binfo[0][pId]+1;
-      if(fabs(pdgid[i])==421&&fabs(y[i])<0.5&&ptTmp<8.)
-         Binfo[1][pId]=Binfo[1][pId]+1;
-      if(fabs(pdgid[i])==443&&fabs(y[i])<0.5&&ptTmp<8.)
-         Binfo[2][pId]=Binfo[2][pId]+1;
-   }//Get B counting multiplicity
+      {
+         Dinfo[0][pId]=Dinfo[0][pId]+1;
+         if(fabs(pdgid[pId])==421&&fabs(y[pId])<1.)
+            Dinfo[1][pId]=Dinfo[1][pId]+1;
+      }
+   }//Get D counting multiplicity
    for(int i=0;i<np;++i)
    {
       double ptTmp=sqrt(px[i]*px[i]+py[i]*py[i]);
-      if(fabs(pdgid[i])>500&&fabs(pdgid[i])<600)
+      if(fabs(pdgid[i])>400&&fabs(pdgid[i])<500&&fabs(pdgid[i])!=443)
       {
-         if(ptTmp<29.5)
+         if(ptTmp<14.5)
          {
-            pthist_Btoall->Fill(ptTmp);
+            pthist_Dtoall->Fill(ptTmp);
          }else{
-            pthist_Btoall->Fill(29.75);
+            pthist_Dtoall->Fill(14.75);
          }
-      }//Get B real histo
+      }//Get D real histo
+      if(fabs(pdgid[i])==421&&fabs(y[i])<1.)
+      {
+         if(ptTmp<14.5)
+         {
+            pthist_D0toall->Fill(ptTmp);
+         }else{
+            pthist_D0toall->Fill(14.75);
+         }
+      }//Get D0 real histo
+      
       if(bMotherId[i]<0) continue;
       int pId = bMotherId[i];   
+      if(fabs(pdgid[pId])==443) continue;
       double parentpt = sqrt(px[pId]*px[pId]+py[pId]*py[pId]);
       if(fabs(pdgid[i])==11&&status[i]>0&&fabs(eta[i])<0.35&&ptTmp>1.&&ptTmp<9.)//e
       {
-         hist_efromB_selected_rebin->Fill(ptTmp);//Measured
-         if(parentpt<29.5){
-            Mresponse_e_rebin_B->Fill(parentpt,ptTmp);
-            Mresponse_B_e_rebin->Fill(ptTmp,parentpt);
-            decay_Btoe_selected_rebin->Fill(parentpt,ptTmp);
-            Bscale_e->Fill(parentpt,1./Binfo[0][pId]);//Get B to e real
+         hist_efromD_selected_rebin->Fill(ptTmp);//Measured
+         if(parentpt<14.5){
+            Mresponse_D_e_rebin->Fill(ptTmp,parentpt);
+            Mresponse_e_rebin_D->Fill(parentpt,ptTmp);
+            decay_Dtoe_selected_rebin->Fill(parentpt,ptTmp);
+            Dscale_e->Fill(parentpt,1./Dinfo[0][pId]);//Get D to e real
+            if(fabs(pdgid[pId])==421&&fabs(y[pId])<1.){
+               Mresponse_D0_e_rebin->Fill(ptTmp,parentpt);
+               Mresponse_e_rebin_D0->Fill(parentpt,ptTmp);
+               D0scale_e->Fill(parentpt,1./Dinfo[1][pId]);
+            }
          }else{
-            Mresponse_e_rebin_B->Fill(29.75,ptTmp);
-            Mresponse_B_e_rebin->Fill(ptTmp,29.75);
-            decay_Btoe_selected_rebin->Fill(29.75,ptTmp);
-            Bscale_e->Fill(29.75,1./Binfo[0][pId]);
+            Mresponse_D_e_rebin->Fill(ptTmp,14.75);
+            Mresponse_e_rebin_D->Fill(14.75,ptTmp);
+            decay_Dtoe_selected_rebin->Fill(14.75,ptTmp);
+            Dscale_e->Fill(14.75,1./Dinfo[0][pId]);
+            if(fabs(pdgid[pId])==421&&fabs(y[pId])<1.){
+               Mresponse_D0_e_rebin->Fill(ptTmp,14.75);
+               Mresponse_e_rebin_D0->Fill(14.75,ptTmp);
+               D0scale_e->Fill(14.75,1./Dinfo[1][pId]);
+            }
          }
       }else{
-         if(parentpt<29.5){
-            decay_Btoe_selected_rebin->Fill(parentpt,ptTmp+9.);
+         if(parentpt<14.5){
+            decay_Dtoe_selected_rebin->Fill(parentpt,ptTmp+9.);
          }else{
-            decay_Btoe_selected_rebin->Fill(29.75,ptTmp+9.);
-         }
-      }
-
-
-
-      if(fabs(pdgid[i])==421&&fabs(y[i])<0.5&&ptTmp<8.)//D0 histo
-      {
-         hist_D0fromB->Fill(ptTmp);
-         if(parentpt<29.5){
-            Mresponse_D0_B->Fill(parentpt,ptTmp);
-            decay_BtoD0->Fill(parentpt,ptTmp);
-            Bscale_D0->Fill(parentpt,1./Binfo[1][pId]);
-         }else{
-            Mresponse_D0_B->Fill(29.75,ptTmp);
-            decay_BtoD0->Fill(29.75,ptTmp);
-            Bscale_D0->Fill(29.75,1./Binfo[1][pId]);
-         }
-      }else{
-         if(parentpt<29.5){
-            decay_BtoD0->Fill(parentpt,ptTmp+8.);
-         }else{
-            decay_BtoD0->Fill(29.75,ptTmp+8.);
-         }
-      }
-      
-
-      
-      if(fabs(pdgid[i])==443&&fabs(y[i])<0.5&&ptTmp<8.)//Jpsi histo
-      {
-         hist_JpsifromB->Fill(ptTmp);
-         if(parentpt<29.5){
-            Mresponse_Jpsi_B->Fill(parentpt,ptTmp);
-            decay_BtoJpsi->Fill(parentpt,ptTmp);
-            Bscale_Jpsi->Fill(parentpt,1./Binfo[2][pId]);
-         }else{
-            Mresponse_Jpsi_B->Fill(29.75,ptTmp);
-            decay_BtoJpsi->Fill(29.75,ptTmp);
-            Bscale_Jpsi->Fill(29.75,1./Binfo[2][pId]);
-         }
-      }else{
-         if(parentpt<29.5){
-            decay_BtoJpsi->Fill(parentpt,ptTmp+8.);
-         }else{
-            decay_BtoJpsi->Fill(29.75,ptTmp+8.);
+            decay_Dtoe_selected_rebin->Fill(14.75,ptTmp+9.);
          }
       }
    }   
@@ -310,9 +277,9 @@ void bt::CreateHist()
 {
 
    //mother binning
-   const int nPtBins = 60;
+   const int nPtBins = 30;
    double mPtMin = 0.;
-   double mPtMax = 30.;
+   double mPtMax = 15.;
    
    //input binning
    // const int nPtBinsInput = 8;
@@ -324,28 +291,22 @@ void bt::CreateHist()
                                                  4.0, 4.5, 5.0, 6.0, 7.0, 8.0, 9.0}; 
    
    
-   //decay binning
-   const int dPtBins = 4;
-   const double binEdgesD0[dPtBins+1]={0.,2.,3.,5.,8.};
-   const double binEdgesJpsi[dPtBins+1]={0.,2.,3.,5.,8.};
+   pthist_Dtoall = new TH1D("pthist_Dtoall","pthist_Dtoall",nPtBins,mPtMin,mPtMax);
+   pthist_D0toall = new TH1D("pthist_D0toall","pthist_D0toall",nPtBins,mPtMin,mPtMax);
    
-   pthist_Btoall = new TH1D("pthist_Btoall","pthist_Btoall",nPtBins,mPtMin,mPtMax);
-   Bscale_e = new TH1D("Bscale_e","Bscale_e",nPtBins,mPtMin,mPtMax);
-   Bscale_D0 = new TH1D("Bscale_D0","Bscale_D0",nPtBins,mPtMin,mPtMax);
-   Bscale_Jpsi = new TH1D("Bscale_Jpsi","Bscale_Jpsi",nPtBins,mPtMin,mPtMax);
+   Dscale_e = new TH1D("Dscale_e","Dscale_e",nPtBins,mPtMin,mPtMax);
+   D0scale_e = new TH1D("D0scale_e","D0scale_e",nPtBins,mPtMin,mPtMax);
 
-   hist_efromB_selected_rebin = new TH1D("hist_efromB_selected_rebin","hist_efromB_selected_rebin",nPtBinsInput,binEdgesInput);
-   hist_D0fromB = new TH1D("hist_D0fromB","hist_D0fromB",dPtBins,binEdgesD0);
-   hist_JpsifromB = new TH1D("hist_JpsifromB","hist_JpsifromB",dPtBins,binEdgesJpsi);
+   hist_efromD_selected_rebin = new TH1D("hist_efromD_selected_rebin","hist_efromD_selected_rebin",nPtBinsInput,binEdgesInput);
    
-   Mresponse_B_e_rebin = new TH2D("Mresponse_B_e_rebin","Mresponse_B_e_rebin",nPtBinsInput,binEdgesInput,nPtBins,mPtMin,mPtMax);
-   Mresponse_e_rebin_B = new TH2D("Mresponse_e_rebin_B","Mresponse_e_rebin_B",nPtBins,mPtMin,mPtMax,nPtBinsInput,binEdgesInput);
-   Mresponse_D0_B = new TH2D("Mresponse_D0_B","Mresponse_D0_B",nPtBins,mPtMin,mPtMax,dPtBins,binEdgesD0);
-   Mresponse_Jpsi_B = new TH2D("Mresponse_Jpsi_B","Mresponse_Jpsi_B",nPtBins,mPtMin,mPtMax,dPtBins,binEdgesJpsi);
+   Mresponse_D_e_rebin = new TH2D("Mresponse_D_e_rebin","Mresponse_D_e_rebin",nPtBinsInput,binEdgesInput,nPtBins,mPtMin,mPtMax);
+   Mresponse_D0_e_rebin = new TH2D("Mresponse_D0_e_rebin","Mresponse_D0_e_rebin",nPtBinsInput,binEdgesInput,nPtBins,mPtMin,mPtMax);
    
-   decay_Btoe_selected_rebin = new TH2D("decay_Btoe_selected_rebin","decay_Btoe_selected_rebin",nPtBins,mPtMin,mPtMax,nPtBinsInput,binEdgesInput);
-   decay_BtoD0 = new TH2D("decay_BtoD0","decay_BtoD0",nPtBins,mPtMin,mPtMax,dPtBins,binEdgesD0);
-   decay_BtoJpsi = new TH2D("decay_BtoJpsi","decay_BtoJpsi",nPtBins,mPtMin,mPtMax,dPtBins,binEdgesJpsi);
+   Mresponse_e_rebin_D = new TH2D("Mresponse_e_rebin_D","Mresponse_e_rebin_D",nPtBins,mPtMin,mPtMax,nPtBinsInput,binEdgesInput);
+   Mresponse_e_rebin_D0 = new TH2D("Mresponse_e_rebin_D0","Mresponse_e_rebin_D0",nPtBins,mPtMin,mPtMax,nPtBinsInput,binEdgesInput);
+   
+   
+   decay_Dtoe_selected_rebin = new TH2D("decay_Dtoe_selected_rebin","decay_Dtoe_selected_rebin",nPtBins,mPtMin,mPtMax,nPtBinsInput,binEdgesInput);
 }
 
 void bt::SaveHist()
@@ -353,24 +314,22 @@ void bt::SaveHist()
    TFile *output=new TFile(fOutputFileName,"recreate");
    output->cd();
    
-   pthist_Btoall->Write();
-   Bscale_e->Write();
-   Bscale_D0->Write();
-   Bscale_Jpsi->Write();
-   
-   hist_efromB_selected_rebin->Write();
-   hist_D0fromB->Write();
-   hist_JpsifromB->Write();
-   
-   Mresponse_B_e_rebin->Write();
-   Mresponse_e_rebin_B->Write();
-   Mresponse_D0_B->Write();
-   Mresponse_Jpsi_B->Write();
-   
-   decay_Btoe_selected_rebin->Write();
-   decay_BtoD0->Write();
-   decay_BtoJpsi->Write();
+   pthist_Dtoall->Write();
+   pthist_D0toall->Write();
 
+   Dscale_e->Write();
+   D0scale_e->Write();
+
+   hist_efromD_selected_rebin->Write();
+
+   Mresponse_D_e_rebin->Write();
+   Mresponse_D0_e_rebin->Write();
+   
+   Mresponse_e_rebin_D->Write();
+   Mresponse_e_rebin_D0->Write();
+
+   decay_Dtoe_selected_rebin->Write();
+   
    output->Close();
 }
 
