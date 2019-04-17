@@ -215,7 +215,7 @@ Int_t bt::Cut(Long64_t entry)
       if(bMotherId[i]<0) continue;
       double ptTmp=sqrt(px[i]*px[i]+py[i]*py[i]);
       int pId = bMotherId[i];
-      if(fabs(pdgid[i])==11&&status[i]>0&&fabs(y[i])<0.5&&ptTmp>1.&&ptTmp<10.)
+      if(fabs(pdgid[i])==11&&status[i]>0&&fabs(eta[i])<0.35&&ptTmp>1.&&ptTmp<9.)
          Binfo[0][pId]=Binfo[0][pId]+1;
       if(fabs(pdgid[i])==421&&fabs(y[i])<0.5&&ptTmp<8.)
          Binfo[1][pId]=Binfo[1][pId]+1;
@@ -237,7 +237,7 @@ Int_t bt::Cut(Long64_t entry)
       if(bMotherId[i]<0) continue;
       int pId = bMotherId[i];   
       double parentpt = sqrt(px[pId]*px[pId]+py[pId]*py[pId]);
-      if(fabs(pdgid[i])==11&&status[i]>0&&fabs(y[i])<0.5&&ptTmp>1.&&ptTmp<10.)//e
+      if(fabs(pdgid[i])==11&&status[i]>0&&fabs(eta[i])<0.35&&ptTmp>1.&&ptTmp<9.)//e
       {
          hist_efromB_selected_rebin->Fill(ptTmp);//Measured
          if(parentpt<29.5){
@@ -253,9 +253,9 @@ Int_t bt::Cut(Long64_t entry)
          }
       }else{
          if(parentpt<29.5){
-            decay_Btoe_selected_rebin->Fill(parentpt,ptTmp+10.);
+            decay_Btoe_selected_rebin->Fill(parentpt,ptTmp+9.);
          }else{
-            decay_Btoe_selected_rebin->Fill(29.75,ptTmp+10.);
+            decay_Btoe_selected_rebin->Fill(29.75,ptTmp+9.);
          }
       }
 

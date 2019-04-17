@@ -31,7 +31,7 @@ void calcInvYield(TH1 *h){
 }
 
 double calcRelativeDiff(TH1 *h1, TH1 *h2){//h1 base line
-  double relativeDiff = 0;
+  double relativeDiff = 1.;
     for(int i=0;i<h1->GetNbinsX();++i){
         double x1 = h1->GetBinCenter(i+1);
         double y1 = h1->GetBinContent(i+1);
@@ -40,12 +40,10 @@ double calcRelativeDiff(TH1 *h1, TH1 *h2){//h1 base line
         double y2 = h2->GetBinContent(i+1);
         double ey2 = h2->GetBinError(i+1);
         if(fabs(x1-x2)>1e-2) return -1;
-        double tmp = (fabs(y2-y1)/y1);
-        relativeDiff += tmp;
-        // cout << i<< " th point "<< tmp << endl;
+        double tmp = fabs((y2-y1)/y1);
+        relativeDiff= relativeDiff * tmp;
     }
-    relativeDiff /= h1->GetNbinsX();
-    return relativeDiff;
+    return (TMath::Power(relativeDiff,1./h1->GetNbinsX()));
 }
 
 TH1D* calculatescale(TH1D* histreal_mom, TH2D* response_sontomom)
@@ -146,13 +144,12 @@ void unfold_decay()
 {
     TFile* fin0 = new TFile("out/DataInput_star.root");//star input with high pt b->e
     TH1D* dataBtoe=(TH1D*)fin0->Get("hCountsBtoe_star");
+
     TFile* fin = new TFile("out/DataInput_phenix.root");//update to phenix input
-    // TH1D* dataBtoe=(TH1D*)fin->Get("gCountsBtoe_phenix"); //Side product: Btoe pt:
     TH1D* gPhenixB=(TH1D*)fin->Get("gYieldB_phenix"); //Side product: B pt:
 
 
-    // TFile *fsim = new TFile("rootfiles/BtoAll.star.hist.root");//new covMatrix root file with Jpsi decay opened
-    TFile *fsim = new TFile("rootfiles/BtoAll.star.pt2.hist.root");//new covMatrix root file with Jpsi decay opened
+    TFile *fsim = new TFile("rootfiles/BtoAll.star.hist.root");
     TH1D* pthist_Btoall = (TH1D*)fsim->Get("pthist_Btoall");
     TH1D* hist_efromB_selected_rebin = (TH1D*)fsim->Get("hist_efromB_selected_rebin");
     TH1D* hist_D0fromB = (TH1D*)fsim->Get("hist_D0fromB");
@@ -250,13 +247,13 @@ void unfold_decay()
     decayed_D0fromB->Reset("ICES");
     decayed_JpsifromB->Reset("ICES");
     
-    int nIter = 20;//40;
-    double diff = 1;
-    // while(diff>0.1)//large errors with stat data point, need more iterations to converge to ~10%
+    int nIter = 733;//100;//6;//40;
+    double diff = 1.;
+    while(diff>0.01)//large errors with stat data point, need more iterations to converge to ~10%
     {
     //unfold==================================================================================================
     //unfold->inverse for consistency check
-    RooUnfoldBayes inverse_BtoAll(response_B_e_rebin,hist_efromB_selected_rebin,nIter);
+    RooUnfoldBayes inverse_BtoAll(response_B_e_rebin,hist_efromB_selected_rebin,1);
     TH1D* inversedBtoAll_smear_e = (TH1D*)((TH1D*)(inverse_BtoAll.Hreco(2)))->Clone("inversedBtoAll_smear_e");
     TMatrixD*inversedBtoAll_smear_ecov = (TMatrixD*)(inverse_BtoAll.Ereco(2));
     
@@ -326,6 +323,7 @@ void unfold_decay()
     diff = calcRelativeDiff(dataBtoe, decayed_efromB_selected_rebin);
     nIter++;
     }
+    nIter--;
     cout << "nIter = " << nIter << " ; diff = " << diff << endl;
     //===========
     //cv5
@@ -383,7 +381,6 @@ void unfold_decay()
     leg1->AddEntry(inversedBtoAll,"Unfolded SIMU B pT (from e pT)","l");
     leg1->Draw();
     // c1->SaveAs("inversedBtoAll.eps");
-    c1->SaveAs("inversedBtoAll.png");
 
     //c2: Step 2: folded/decayed e pT by using unfolded SIMU B pT
     TCanvas*c2=new TCanvas("c2","c2",1000,1000);
@@ -421,7 +418,6 @@ void unfold_decay()
     leg2->AddEntry(reinversed_folded_efromB,"SIMU e: Unfold---SIMU e pT--->Fold","l");
     leg2->Draw();
     // c2->SaveAs("reinversed_folded_efromB.eps");
-    c2->SaveAs("reinversed_folded_efromB.png");
     
     //Step 3: folded/decayed D0/Jpsi pT by using unfolded SIMU B pT
     TCanvas*c3=new TCanvas("c3","c3",1200,600);
@@ -498,7 +494,6 @@ void unfold_decay()
     leg3_2->AddEntry(reinversed_folded_JpsifromB,"SIMU Jpsi: Unfold---SIMU e PT--->Fold","l");
     leg3_2->Draw();
     // c3->SaveAs("reinversed_folded_DandJpsifromB.eps");
-    c3->SaveAs("reinversed_folded_DandJpsifromB.png");
     
     //Canvas set B: data self check via e pT
     TCanvas*c4=new TCanvas("c4","c4",1000,1000);
@@ -542,8 +537,7 @@ void unfold_decay()
     leg4->AddEntry(decayed_folded_efromB,"Data e: Unfold---Data e pT--->Fold","l");
     leg4->Draw();
     // c4->SaveAs("decayed_folded_efromB.eps");
-    c4->SaveAs("decayed_folded_efromB.png");
-    
+       
     //Canvas set C: result for D0 and Jpsi
     TCanvas*c5=new TCanvas("c5","c5",1200,600);
     c5->Divide(2,1,0.0001,0.0001);
@@ -601,7 +595,6 @@ void unfold_decay()
     leg5_2->AddEntry(decayed_folded_JpsifromB,"Jpsi from B (with fold)","l");
     leg5_2->Draw();
     // c5->SaveAs("decayed_folded_DandJpsifromB.eps");
-    c5->SaveAs("decayed_folded_DandJpsifromB.png");
     
 
     TCanvas*c6=new TCanvas("c6","c6",800,600);
@@ -640,10 +633,8 @@ void unfold_decay()
     leg6->Draw();
     
     // c6->SaveAs("unfoldedBtoAll.eps");
-    c6->SaveAs("unfoldedBtoAll.png");
 
-    // TFile* out= new TFile("etoBtoD0andJpsi.star.root","recreate");
-    TFile* out= new TFile("etoBtoD0andJpsi.star.pt2.root","recreate");
+    TFile* out= new TFile("etoBtoD0andJpsi.root","recreate");
     out->cd();
     c1->Write();
     c2->Write();
@@ -652,11 +643,9 @@ void unfold_decay()
     c5->Write();
     c6->Write();
     decayed_D0fromB->Write();
-    decayed_folded_D0fromB->Write();
+    //decayed_folded_D0fromB->Write();
     decayed_JpsifromB->Write();
-    decayed_folded_JpsifromB->Write();
-    decayed_efromB_selected_rebin->Write();
-    decayed_folded_efromB->Write();
+    //decayed_folded_JpsifromB->Write();
     unfoldedBtoAll->Write();
     out->Close();
 }
