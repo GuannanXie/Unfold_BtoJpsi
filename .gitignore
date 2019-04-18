@@ -15,3 +15,5 @@ temp_gccflags.c
 *.package
 *.session.xml
 ./plots/*
+./analysisD_phenix_mine/*
+./unfoldD_phenix_mine/*
