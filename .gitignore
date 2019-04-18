@@ -18,5 +18,9 @@ temp_gccflags.c
 ./analysisD_phenix_mine/*
 ./unfoldD_phenix_mine/*
 ./*/src/*
+unfold_*/src/RooUnfoldResponse.h
 ./*/libRooUnfold.rootmap
 ./*/libRooUnfold.so
+./*/load.C
+unfold_phenix_D/src/RooUnfoldResponse.h
+unfold_star_D/src/RooUnfoldResponse.h
