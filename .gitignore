@@ -17,3 +17,6 @@ temp_gccflags.c
 ./plots/*
 ./analysisD_phenix_mine/*
 ./unfoldD_phenix_mine/*
+./*/src/*
+./*/libRooUnfold.rootmap
+./*/libRooUnfold.so
